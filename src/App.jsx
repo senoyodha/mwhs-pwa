@@ -246,47 +246,11 @@ function getHijriDate(date = new Date()) {
   return `${HDay} ${monthNames[HMonth - 1]} ${HYear} AH`;
 }
 
-async function getVapidPublicKey() {
-  // You’ll expose this via Vercel env var; we’ll also add a /api/vapid endpoint if you prefer.
-  // For now, paste it directly once generated (step 4).
-  return import.meta.env.VITE_VAPID_PUBLIC_KEY;
-}
-
-async function subscribeUserToPush() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    alert("Push not supported on this browser.");
-    return null;
-  }
-  const reg = await navigator.serviceWorker.ready;
-  const vapidKey = await getVapidPublicKey();
-  const sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidKey),
-  });
-  // Send to backend
-  await fetch("/api/subscribe", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(sub),
-  });
-  return sub;
-}
-
-async function unsubscribeUserFromPush() {
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.getSubscription();
-  if (sub) {
-    await fetch("/api/unsubscribe", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(sub),
-    });
-    await sub.unsubscribe();
-  }
-}
-
-// helper for VAPID public key conversion
+// ---- Push helpers (frontend) ----
 function urlBase64ToUint8Array(base64String) {
+  if (!base64String || typeof base64String !== "string") {
+    throw new Error("VAPID public key missing or invalid.");
+  }
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const b64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(b64);
@@ -294,6 +258,79 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
   return output;
 }
+
+async function getVapidPublicKey() {
+  const key = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  if (!key) {
+    console.error("[PUSH] VITE_VAPID_PUBLIC_KEY is missing. Redeploy after setting it.");
+  }
+  return key;
+}
+
+async function subscribeUserToPush() {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("[PUSH] Not supported in this browser.");
+      return null;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg) {
+      console.error("[PUSH] Service worker not ready.");
+      return null;
+    }
+
+    // If already subscribed, ensure backend knows about it (idempotent “upsert”)
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      console.info("[PUSH] Already subscribed. Sending to backend to ensure upsert.");
+      await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(existing),
+      });
+      return existing;
+    }
+
+    const vapidKey = await getVapidPublicKey();
+    if (!vapidKey) return null;
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+
+    await fetch("/api/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+
+    console.info("[PUSH] Subscribed & sent to backend.");
+    return sub;
+  } catch (err) {
+    console.error("[PUSH] subscribeUserToPush failed:", err);
+    return null;
+  }
+}
+
+async function unsubscribeUserFromPush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) return;
+    await fetch("/api/unsubscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+    await sub.unsubscribe();
+    console.info("[PUSH] Unsubscribed & removed from backend.");
+  } catch (err) {
+    console.error("[PUSH] unsubscribeUserFromPush failed:", err);
+  }
+}
+
 
 async function refreshInstallStatus() {
   // If the prompt is available, we already reset in the event handler,
@@ -847,37 +884,37 @@ export default function App() {
         </section>
 
         {/* INSTALL / INSTALLED STATE */}
-{!standalone && (
-  <div className="install-wrap" style={{ textAlign: "center" }}>
-    {installedKnown ? (
-      <>
-        <p
-          className="install-note"
-          title="The app is already installed. Open it from your Home Screen / App Launcher."
-          style={{ margin: 0, opacity: 0.9, fontSize: "0.95rem", lineHeight: 1.4 }}
-        >
-          App is installed. Open from Home Screen.
-        </p>
+        {!standalone && (
+          <div className="install-wrap" style={{ textAlign: "center" }}>
+            {installedKnown ? (
+              <>
+                <p
+                  className="install-note"
+                  title="The app is already installed. Open it from your Home Screen / App Launcher."
+                  style={{ margin: 0, opacity: 0.9, fontSize: "0.95rem", lineHeight: 1.4 }}
+                >
+                  App is installed. Open from Home Screen.
+                </p>
 
-        {/* Force the button onto its own line below the text */}
-        <div className="install-actions">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={refreshInstallStatus}
-            title="If you uninstalled the app, tap to refresh the install status"
-          >
-            Refresh status
-          </button>
-        </div>
-      </>
-    ) : (
-      <button className="btn install-btn" onClick={handleInstallClick}>
-        Install MWHS App
-      </button>
-    )}
-  </div>
-)}
+                {/* Force the button onto its own line below the text */}
+                <div className="install-actions">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={refreshInstallStatus}
+                    title="If you uninstalled the app, tap to refresh the install status"
+                  >
+                    Refresh status
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button className="btn install-btn" onClick={handleInstallClick}>
+                Install MWHS App
+              </button>
+            )}
+          </div>
+        )}
 
         {/* FULL-SCREEN BANNER */}
         {showBanner && bannerInfo && (
