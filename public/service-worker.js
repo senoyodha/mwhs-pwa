@@ -19,8 +19,7 @@ const PRECACHE_URLS = [
   "/icons/icon-512-maskable.png",
   "/icons/apple-icon-180.png",
 
-  // (Optional) Poster / favicon, if present
-  "/icons/poster.png",
+  // (Optional) favicon, if present
   "/favicon.ico",
 
   // Audio (if you want them available offline)

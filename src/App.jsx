@@ -305,10 +305,6 @@ async function subscribeUserToPush() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(sub),
     });
-    window.__VAPID__ = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-    console.log("VAPID set?", !!window.__VAPID__);
-    console.debug("[PUSH] VAPID length:", (import.meta.env.VITE_VAPID_PUBLIC_KEY || "").length);
-
     console.info("[PUSH] Subscribed & sent to backend.");
     return sub;
   } catch (err) {
