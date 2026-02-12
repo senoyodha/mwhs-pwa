@@ -68,12 +68,7 @@ function formatGregorian(date = new Date()) {
 }
 
 function formatHijri(date = new Date()) {
-  return new Intl.DateTimeFormat("en-GB-u-ca-islamic", {
-    timeZone: TZ,
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }).format(date);
+  return getHijriDate(date);
 }
 
 function formatClock(date = new Date()) {
@@ -166,6 +161,59 @@ function isStandalonePWA() {
     window.matchMedia?.("(display-mode: standalone)")?.matches ||
     window.navigator.standalone === true
   );
+}
+
+// ----------------------------------------
+// SIMPLE HIJRI FIX (Chrome/Edge safe)
+// ----------------------------------------
+function getHijriDate(date = new Date()) {
+  // Convert Gregorian → Julian Day Number
+  const GY = date.getFullYear();
+  const GM = date.getMonth() + 1;
+  const GD = date.getDate();
+
+  let a = Math.floor((14 - GM) / 12);
+  let y = GY + 4800 - a;
+  let m = GM + 12 * a - 3;
+
+  let JDN =
+    GD +
+    Math.floor((153 * m + 2) / 5) +
+    365 * y +
+    Math.floor(y / 4) -
+    Math.floor(y / 100) +
+    Math.floor(y / 400) -
+    32045;
+
+  // Convert JDN → Hijri
+  const L = JDN - 1948440 + 10632;
+  const N = Math.floor((L - 1) / 10631);
+  const K = L - 10631 * N;
+  const J = Math.floor((K - 1) / 354.3666667);
+
+  let HYear = 30 * N + J;
+  let temp = K - Math.floor(J * 354.3666667);
+  let HMonth = Math.ceil(temp / 29.5);
+  let HDay = Math.floor(temp - (HMonth - 1) * 29.5);
+
+  if (HDay === 0) HDay = 1;
+
+  const monthNames = [
+    "Muharram",
+    "Safar",
+    "Rabi’ al-Awwal",
+    "Rabi’ al-Thani",
+    "Jumada al-Awwal",
+    "Jumada al-Thani",
+    "Rajab",
+    "Sha'ban",
+    "Ramadan",
+    "Shawwal",
+    "Dhu al-Qa‘dah",
+    "Dhu al-Hijjah"
+  ];
+
+  return `${HDay} ${monthNames[HMonth - 1]} ${HYear} AH`;
 }
 
 // ================================
