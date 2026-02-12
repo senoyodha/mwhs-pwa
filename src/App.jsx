@@ -11,6 +11,9 @@ const PRAYER_ORDER = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 const ALERT_MODE_STORAGE_KEY = "mwhs_alert_mode"; // "adhan" | "notif" | "off"
 const THEME_STORAGE_KEY = "mwhs_theme";          // "system" | "light" | "dark"
 
+// Persisted key to remember if user installed from the browser previously
+const INSTALLED_KNOWN_KEY = "mwhs_installed_known";
+
 // ----------------------------------------
 // TIME HELPERS
 // ----------------------------------------
@@ -125,6 +128,33 @@ function getCountdown(target, now) {
     String(Math.floor((s % 3600) / 60)).padStart(2, "0"),
     String(s % 60).padStart(2, "0")
   ].join(":");
+}
+
+// Build an ISO date (YYYY-MM-DD) for TZ local date + offset days
+function getISOInTZ(baseDate = new Date(), daysOffset = 0) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(baseDate);
+
+  let y = parseInt(parts.find(p => p.type === "year").value, 10);
+  let m = parseInt(parts.find(p => p.type === "month").value, 10);
+  let d = parseInt(parts.find(p => p.type === "day").value, 10);
+
+  const dt = new Date(`${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}T00:00:00`);
+  dt.setDate(dt.getDate() + daysOffset);
+
+  const y2 = dt.getFullYear();
+  const m2 = String(dt.getMonth() + 1).padStart(2, "0");
+  const d2 = String(dt.getDate()).padStart(2, "0");
+  return `${y2}-${m2}-${d2}`;
+}
+
+function parseHMToDateOnISO(hm, iso) {
+  const norm = normalizeTime(hm);
+  if (!norm) return null;
+  const [H, M] = norm.split(":").map(Number);
+  if (Number.isNaN(H) || Number.isNaN(M)) return null;
+  return new Date(`${iso}T${String(H).padStart(2, "0")}:${String(M).padStart(2, "0")}:00`);
 }
 
 // ----------------------------------------
@@ -245,6 +275,10 @@ export default function App() {
   const [standalone, setStandalone] = useState(isStandalonePWA());
   const [isIOS, setIsIOS] = useState(false);
 
+  const [installedKnown, setInstalledKnown] = useState(
+    () => localStorage.getItem(INSTALLED_KNOWN_KEY) === "1"
+  );
+
   // -----------------------------
   // CLOCK TICK
   // -----------------------------
@@ -306,6 +340,31 @@ export default function App() {
     return () => mq.removeEventListener?.("change", handler);
   }, []);
 
+  // Mark installed when the PWA fires 'appinstalled' (Chrome/Edge)
+  useEffect(() => {
+    function onAppInstalled() {
+      localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
+      setInstalledKnown(true);
+    }
+    window.addEventListener("appinstalled", onAppInstalled);
+    return () => window.removeEventListener("appinstalled", onAppInstalled);
+  }, []);
+
+  // Best-effort probe (Chrome/Android): detect if a related web app is installed
+  useEffect(() => {
+    async function probeInstalled() {
+      if (!('getInstalledRelatedApps' in navigator)) return;
+      try {
+        const related = await navigator.getInstalledRelatedApps();
+        if (Array.isArray(related) && related.length > 0) {
+          localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
+          setInstalledKnown(true);
+        }
+      } catch { }
+    }
+    if (!standalone && !installedKnown) probeInstalled();
+  }, [standalone, installedKnown]);
+
   // -----------------------------
   // TIMETABLE LOOKUPS
   // -----------------------------
@@ -315,25 +374,53 @@ export default function App() {
     [todayISO]
   );
 
-  const nextPrayer = todayEntry ? getNextPrayer(todayEntry, now) : null;
+  // Next within today
+  const nextWithinToday = todayEntry ? getNextPrayer(todayEntry, now) : null;
+
+  // If no next within today, use tomorrow's Fajr
+  let nextPrayer = nextWithinToday;
+  let nextIsTomorrow = false;
+  if (!nextWithinToday && todayEntry) {
+    const tomorrowISO = getISOInTZ(now, 1);
+    const tomorrowEntry = timetable.days.find((d) => d.date === tomorrowISO);
+    if (tomorrowEntry && tomorrowEntry.fajr) {
+      nextPrayer = { key: "fajr", time: tomorrowEntry.fajr, iso: tomorrowISO };
+      nextIsTomorrow = true;
+    }
+  }
+
+  // Current prayer (with fajr-after-shurooq rule in getCurrentPrayer)
   const currentPrayer = todayEntry ? getCurrentPrayer(todayEntry, now) : null;
 
-  const nextPrayerTime =
-    todayEntry && nextPrayer ? parseHMToDate(nextPrayer.time, now) : null;
+  // Build nextPrayerTime (today or tomorrow)
+  let nextPrayerTime = null;
+  if (nextPrayer) {
+    if (nextPrayer.iso) {
+      nextPrayerTime = parseHMToDateOnISO(nextPrayer.time, nextPrayer.iso);
+    } else {
+      nextPrayerTime = parseHMToDate(nextPrayer.time, now);
+    }
+  }
 
   const previousPrayerTime =
-    todayEntry && nextPrayer ? getPreviousPrayerTime(todayEntry, now) : null;
+    todayEntry && nextWithinToday ? getPreviousPrayerTime(todayEntry, now) : null;
 
   const countdown =
     nextPrayerTime != null ? getCountdown(nextPrayerTime, now) : null;
 
   // Progress bar
   let progressPercent = 0;
-  if (previousPrayerTime && nextPrayerTime) {
+  if (previousPrayerTime && nextPrayerTime && !nextIsTomorrow) {
     const total = nextPrayerTime - previousPrayerTime;
     const passed = now - previousPrayerTime;
     progressPercent = Math.min(100, Math.max(0, (passed / total) * 100));
+  } else if (previousPrayerTime && nextIsTomorrow) {
+    // Last window of the day – keep at 100%
+    progressPercent = 100;
   }
+
+  // Build a single stable key that encodes both "who is next" and "is it tomorrow?"
+  const nextKeyStable = `${nextIsTomorrow ? 'tomorrow' : 'today'}:${nextPrayer?.key ?? ''}`;
 
   // Reset guards when the next prayer changes
   useEffect(() => {
@@ -347,7 +434,7 @@ export default function App() {
       } catch { }
       currentAudioRef.current = null;
     }
-  }, [nextPrayer?.key]);
+  }, [nextKeyStable]);
 
   // ---------------------------------------------------
   // MAIN ALERT TRIGGER (00:00:00 logic)
@@ -400,14 +487,7 @@ export default function App() {
         currentAudioRef.current = audio;
       }, 1500);
     }
-  }, [
-    countdown,
-    nextPrayer,
-    alertMode,
-    adhanPlayed,
-    notifSent,
-    showBanner
-  ]);
+  }, [countdown, nextKeyStable, alertMode, adhanPlayed, notifSent, showBanner])
 
   // Close banner by clicking background
   function dismissBanner(e) {
@@ -428,12 +508,20 @@ export default function App() {
   }
 
   async function handleInstallClick() {
+    if (standalone) return; // safety: should be hidden anyway
+
     if (installEvt) {
       installEvt.prompt();
-      await installEvt.userChoice;
+      const choice = await installEvt.userChoice;
       setInstallEvt(null);
+
+      if (choice && choice.outcome === "accepted") {
+        localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
+        setInstalledKnown(true);
+      }
       return;
     }
+
     if (isIOS) {
       alert(
         "To install on iPhone/iPad:\n\n1) Tap the Share icon in Safari\n2) Choose 'Add to Home Screen'\n3) Tap Add"
@@ -441,22 +529,39 @@ export default function App() {
     }
   }
 
-  // Current label
+  // Current label (supports Fajr special cases and overnight after midnight)
   let currentLabel = null;
-  if (currentPrayer) {
-    const iqStr = todayEntry["iqamah_" + currentPrayer];
-    const iqDt = iqStr ? parseHMToDate(iqStr, now) : null;
+  if (todayEntry) {
+    const fajrAdhan = parseHMToDate(todayEntry.fajr, now);
+    const fajrIqamah = todayEntry["iqamah_fajr"]
+      ? parseHMToDate(todayEntry["iqamah_fajr"], now)
+      : null;
+    const shurooqDt = parseHMToDate(todayEntry.shurooq, now);
 
-    if (iqDt && iqDt > now) {
-      currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Iqamah in ${getCountdown(
-        iqDt,
-        now
-      )}`;
-    } else if (nextPrayerTime) {
-      currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Ends in ${getCountdown(
-        nextPrayerTime,
-        now
-      )}`;
+    if (currentPrayer === "fajr") {
+      if (fajrIqamah && now < fajrIqamah) {
+        currentLabel = `CURRENT: FAJR — Iqamah in ${getCountdown(fajrIqamah, now)}`;
+      } else if (shurooqDt && now < shurooqDt) {
+        currentLabel = `CURRENT: FAJR — Shurooq in ${getCountdown(shurooqDt, now)}`;
+      } else {
+        // Past Shurooq → no current label (and "Now" is removed by getCurrentPrayer)
+        currentLabel = null;
+      }
+    } else if (currentPrayer) {
+      // Non-Fajr current prayers: Iqamah → Ends
+      const iqStr = todayEntry["iqamah_" + currentPrayer];
+      const iqDt = iqStr ? parseHMToDate(iqStr, now) : null;
+
+      if (iqDt && now < iqDt) {
+        currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Iqamah in ${getCountdown(iqDt, now)}`;
+      } else if (nextPrayerTime) {
+        currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Ends in ${getCountdown(nextPrayerTime, now)}`;
+      }
+    } else {
+      // After midnight before Fajr: show overnight label to Fajr
+      if (nextPrayer && !nextIsTomorrow && nextPrayer.key === "fajr" && nextPrayerTime) {
+        currentLabel = `NIGHT — Fajr in ${getCountdown(nextPrayerTime, now)}`;
+      }
     }
   }
 
@@ -553,6 +658,9 @@ export default function App() {
             <div className="next-label">Next prayer</div>
             <div className="next-value">
               {nextPrayer.key.toUpperCase()} at {formatTime(nextPrayer.time)}
+              {nextIsTomorrow && (
+                <span style={{ marginLeft: 6, opacity: 0.8 }}>(tomorrow)</span>
+              )}
             </div>
             {countdown && (
               <div className="countdown">
@@ -589,7 +697,8 @@ export default function App() {
                 {PRAYER_ORDER.map((key) => {
                   const pretty = key.charAt(0).toUpperCase() + key.slice(1);
                   const isCurrent = key === currentPrayer;
-                  const isNext = nextPrayer && key === nextPrayer.key;
+                  // Only mark "next-row" when the next prayer is still TODAY
+                  const isNext = nextPrayer && !nextIsTomorrow && key === nextPrayer.key;
                   const adhan = todayEntry[key];
                   const iqamah = todayEntry[`iqamah_${key}`];
 
@@ -631,12 +740,26 @@ export default function App() {
           </div>
         </section>
 
-        {/* INSTALL BUTTON */}
+        {/* INSTALL / INSTALLED STATE */}
         {!standalone && (
           <div className="install-wrap">
-            <button className="btn install-btn" onClick={handleInstallClick}>
-              Install MWHS App
-            </button>
+            {installedKnown ? (
+              // Already installed (as far as we can tell) → show disabled helper
+              <button
+                className="btn install-btn installed"
+                type="button"
+                disabled
+                aria-disabled="true"
+                title="App is installed. Open it from your Home Screen / App Launcher."
+              >
+                App is installed. Open from Home Screen
+              </button>
+            ) : (
+              // Not installed → show the usual install action
+              <button className="btn install-btn" onClick={handleInstallClick}>
+                Install MWHS App
+              </button>
+            )}
           </div>
         )}
 
@@ -654,17 +777,20 @@ export default function App() {
 
               <div className="banner-actions">
                 {alertMode === "adhan" && (
-                  <button className="btn" onClick={(e) => {
-                    e.stopPropagation();
-                    if (!currentAudioRef.current) {
-                      const src = pickAdhanSource(bannerInfo.prayerKey);
-                      const audio = new Audio(src);
-                      audio.play().catch(() => playBeepFallback());
-                      currentAudioRef.current = audio;
-                    } else {
-                      currentAudioRef.current.play().catch(() => playBeepFallback());
-                    }
-                  }}>
+                  <button
+                    className="btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!currentAudioRef.current) {
+                        const src = pickAdhanSource(bannerInfo.prayerKey);
+                        const audio = new Audio(src);
+                        audio.play().catch(() => playBeepFallback());
+                        currentAudioRef.current = audio;
+                      } else {
+                        currentAudioRef.current.play().catch(() => playBeepFallback());
+                      }
+                    }}
+                  >
                     Play / Unmute
                   </button>
                 )}
