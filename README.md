@@ -5,6 +5,12 @@ Built with **React + Vite**, installable on Android, iOS, and Desktop, with offl
 
 ---
 
+## 🔗 Live Demo
+
+**https://mwhs-pwa.vercel.app/**
+
+---
+
 ## 📸 Screenshot
 
 ![Screenshot: the screenshot shows the main page.](https://lh3.googleusercontent.com/d/1nsLO60v9BJdAJVu9ZWZ_OJKCHITGgwOq)
@@ -109,36 +115,26 @@ These are **platform/browser constraints** that apply to all PWAs:
 
 ---
 
-## 🚀 Next Steps to Complement These Limits
+## 🚀 Next Steps (To‑Do)
 
-### 1) Push Notification **Backend** (Recommended Next)
-Enable notifications even when the app is **closed** by adding a minimal push backend:
+### 1) **DB‑Backed Push Subscriptions (Recommended Next)**
+Move from in‑memory storage to a real database for reliability and scale:
+- Store push subscriptions (endpoint, keys, timestamp)
+- Add unsubscribe cleanup & dead endpoint pruning
+- Optional: per‑user preferences (Alert mode, mosque selection)
+- Options: Supabase / Postgres, PlanetScale / MySQL, or a KV store
 
-- **Vercel Serverless Functions** to store subscriptions and send pushes
-- **VAPID keys** for Web Push
-- **Daily scheduler (CRON)** to trigger messages at exact Adhan times (based on `timetable.json`)
-- **User preference** storage for alert mode (optional)
-
-> This provides **reliable background notifications** on Android/Desktop (and iOS PWAs added to Home Screen). It **does not** enable background Adhan audio—only native can.
-
-### 2) **Native Wrapper** for Full Background Adhan (Optional)
-If background Adhan is a must:
-
-- Wrap this PWA with **Capacitor** → generate Android/iOS projects
-- Add **native background audio** / **alarm manager** plugins
-- Publish to **Play Store / App Store**
-- Keep almost all existing web code; add native bits only for background features
-
-Benefits:
-- Play Adhan with custom sounds in the background  
-- Schedule alarms precisely (incl. pre‑iqamah reminders)  
-- Add widgets / lock‑screen controls  
-- Deeper, more reliable OS integration
+### 2) **Native Alert Capability (Background Adhan)**
+Wrap this PWA with **Capacitor** to deliver full native features:
+- Background Adhan audio (even when the app is closed)
+- OS‑level scheduled alarms & custom sounds
+- Lock‑screen controls & widgets
+- Publish to Play Store / App Store
 
 ### 3) (Optional) Admin Panel
 - Web dashboard to edit timetable
-- One‑click push announcements (e.g., Ramadan updates, Jumu’ah notices)
-- Multi‑mosque support (future)
+- One‑click push announcements (Ramadan updates, Jumu’ah notices)
+- Multi‑mosque support
 
 ---
 
@@ -191,6 +187,9 @@ The service worker is registered in `src/main.jsx`.
 Manifest + icons live in `/public`.  
 Audio and timetable are pre‑cached for offline use.
 
+> **Serverless functions locally:**  
+> Vite’s dev server does not run Vercel Functions. Use `vercel dev` or test against the deployed endpoints.
+
 ***
 
 ## 🌐 Deploying to Vercel
@@ -204,10 +203,17 @@ Audio and timetable are pre‑cached for offline use.
     *   **Install Command**: `npm install`
 5.  Deploy 🎉
 
-After deploy:
+**Cron Jobs (Vercel)**
 
-*   Install the app on Android/Desktop from the browser menu
-*   iOS users: “Add to Home Screen” in Safari
+*   Add `vercel.json` with:
+    ```json
+    {
+      "crons": [
+        { "path": "/api/send-today", "schedule": "*/1 * * * *" }
+      ]
+    }
+    ```
+*   Add `CRON_SECRET` in Vercel Env Variables and check it in `/api/send-today.js`.
 
 ***
 
@@ -216,13 +222,11 @@ After deploy:
 *   At Adhan time, **notification fires first**, then **Adhan audio starts 1500 ms later** (prevents the OS notification sound from clipping the Adhan).
 *   In **Notif** mode: only push + banner (no audio).
 *   In **Off** mode: banner only (no push, no audio).
-*   **Background Adhan** is not possible in PWA; requires native wrapper.
+*   **Background Adhan** is not possible in PWA; requires a native wrapper.
 
 ***
 
 ## ❤️ Credits
 
-Made for **MWHS — Manchester Welfare House Society**  
+Made for **MWHS — Muslim Welfare House Sheffield**  
 Designed to assist the community with reliable daily prayer‑time reminders.
-
-````
