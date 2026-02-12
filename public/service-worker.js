@@ -3,7 +3,7 @@
 // Full offline support + Push
 // =============================
 
-const CACHE_VERSION = "mwhs-v2"; // bump when you change assets/logic
+const CACHE_VERSION = "mwhs-v3"; // bump when you change assets/logic
 const CACHE_NAME = `static-${CACHE_VERSION}`;
 
 // Only include files that truly exist under /public
@@ -19,13 +19,39 @@ const PRECACHE_URLS = [
   "/icons/icon-512-maskable.png",
   "/icons/apple-icon-180.png",
 
-  // (Optional) favicon, if present
+  // (Optional) Poster / favicon, if present
+  "/icons/poster.png",
   "/favicon.ico",
 
   // Audio (if you want them available offline)
   "/audio/adhan_1.m4a",
   "/audio/adhan_2.m4a",
 ];
+
+// --------------------------------------------------
+// Helpers
+// --------------------------------------------------
+function isHttpLikeRequest(req) {
+  // NOTE: Some requests come from extensions: chrome-extension:, moz-extension:, etc.
+  try {
+    const u = new URL(req.url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    // Non-standard scheme or opaque; treat as not-http(s)
+    return false;
+  }
+}
+
+async function safePut(cache, req, res) {
+  try {
+    if (!isHttpLikeRequest(req)) return;           // avoid chrome-extension://
+    if (!res || !res.ok) return;                   // only cache successful responses
+    await cache.put(req, res.clone());
+  } catch (e) {
+    // Never let caching crash the SW
+    // console.warn("[SW] cache.put failed", e);
+  }
+}
 
 // --------------------------------------------------
 // INSTALL: Pre-cache essential files (fail-safe)
@@ -36,10 +62,11 @@ self.addEventListener("install", (event) => {
     (async () => {
       try {
         const cache = await caches.open(CACHE_NAME);
+        // Precache, but don't let an error block install
         await cache.addAll(PRECACHE_URLS);
       } catch (e) {
         // Do not block activation if one of the URLs fails
-        console.warn("[SW] Precache skipped some assets:", e);
+        // console.warn("[SW] Precache skipped some assets:", e);
       }
     })()
   );
@@ -51,7 +78,6 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // cleanup old versions with same prefix
       const keys = await caches.keys();
       await Promise.all(
         keys
@@ -65,6 +91,7 @@ self.addEventListener("activate", (event) => {
 
 // --------------------------------------------------
 // FETCH: Offline strategies
+// - Skip non-http(s) completely
 // - HTML: network-first (fallback to cache/index.html)
 // - Others: cache-first (fallback to network)
 // --------------------------------------------------
@@ -74,7 +101,9 @@ self.addEventListener("fetch", (event) => {
   // Only handle GET
   if (req.method !== "GET") return;
 
-  // Heuristic: HTML requests
+  // Ignore any non-http(s) scheme (e.g., chrome-extension://)
+  if (!isHttpLikeRequest(req)) return;
+
   const isHTML =
     req.mode === "navigate" ||
     (req.headers.get("accept") || "").includes("text/html");
@@ -86,7 +115,7 @@ self.addEventListener("fetch", (event) => {
         try {
           const res = await fetch(req);
           const cache = await caches.open(CACHE_NAME);
-          cache.put(req, res.clone());
+          await safePut(cache, req, res);
           return res;
         } catch {
           const cache = await caches.open(CACHE_NAME);
@@ -104,9 +133,10 @@ self.addEventListener("fetch", (event) => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(req);
       if (cached) return cached;
+
       try {
         const res = await fetch(req);
-        if (res && res.ok) cache.put(req, res.clone());
+        await safePut(cache, req, res);
         return res;
       } catch {
         // As a last resort, return whatever we have (may be undefined)
@@ -149,12 +179,10 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       for (const client of list) {
-        // Reuse an existing tab that is already on our origin
         if (client.url.includes(self.location.origin) && "focus" in client) {
           return client.focus();
         }
       }
-      // Or open a new one
       return clients.openWindow(targetUrl);
     })
   );
