@@ -295,6 +295,28 @@ function urlBase64ToUint8Array(base64String) {
   return output;
 }
 
+async function refreshInstallStatus() {
+  // If the prompt is available, we already reset in the event handler,
+  // but let’s try the related-apps probe as well:
+  if ('getInstalledRelatedApps' in navigator) {
+    try {
+      const related = await navigator.getInstalledRelatedApps();
+      if (Array.isArray(related) && related.length === 0) {
+        localStorage.setItem(INSTALLED_KNOWN_KEY, "0");
+        setInstalledKnown(false);
+      } else if (Array.isArray(related) && related.length > 0) {
+        localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
+        setInstalledKnown(true);
+      }
+    } catch { }
+  }
+  // As a fallback, if installEvt exists now, mark as not installed.
+  if (installEvt) {
+    localStorage.setItem(INSTALLED_KNOWN_KEY, "0");
+    setInstalledKnown(false);
+  }
+}
+
 // ================================
 // MAIN COMPONENT
 // ================================
@@ -400,6 +422,9 @@ export default function App() {
     const handler = (e) => {
       e.preventDefault();
       setInstallEvt(e);
+      // If install prompt is available, then the app is *not* installed.
+      localStorage.setItem(INSTALLED_KNOWN_KEY, "0");
+      setInstalledKnown(false);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
@@ -429,10 +454,18 @@ export default function App() {
       if (!('getInstalledRelatedApps' in navigator)) return;
       try {
         const related = await navigator.getInstalledRelatedApps();
-        if (Array.isArray(related) && related.length > 0) {
-          localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
-          setInstalledKnown(true);
+
+        if (Array.isArray(related)) {
+          if (related.length > 0) {
+            localStorage.setItem(INSTALLED_KNOWN_KEY, "1");
+            setInstalledKnown(true);
+          } else {
+            // No related app found → consider it uninstalled
+            localStorage.setItem(INSTALLED_KNOWN_KEY, "0");
+            setInstalledKnown(false);
+          }
         }
+
       } catch { }
     }
     if (!standalone && !installedKnown) probeInstalled();
@@ -815,20 +848,30 @@ export default function App() {
 
         {/* INSTALL / INSTALLED STATE */}
         {!standalone && (
-          <div className="install-wrap">
+          <div className="install-wrap" style={{ textAlign: "center" }}>
             {installedKnown ? (
-              // Already installed (as far as we can tell) → show disabled helper
-              <button
-                className="btn install-btn installed"
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="App is installed. Open it from your Home Screen / App Launcher."
-              >
-                App is installed. Open from Home Screen
-              </button>
+              <>
+                <button
+                  className="btn install-btn installed"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="App is installed. Open it from your Home Screen / App Launcher."
+                >
+                  App is installed. Open from Home Screen
+                </button>
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={refreshInstallStatus}
+                    title="If you uninstalled the app, click to refresh the install status"
+                  >
+                    Refresh status
+                  </button>
+                </div>
+              </>
             ) : (
-              // Not installed → show the usual install action
               <button className="btn install-btn" onClick={handleInstallClick}>
                 Install MWHS App
               </button>
