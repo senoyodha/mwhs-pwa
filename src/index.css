@@ -1,0 +1,646 @@
+/* ---------- Theme variables ---------- */
+:root {
+  --bg: #ffffff;
+  --fg: #0f172a;
+  /* slate-900 */
+  --muted: #475569;
+  /* slate-600 */
+  --border: #e5e7eb;
+  /* gray-200 */
+  --brand: #0f766e;
+  /* teal-700 */
+
+  --card-bg: #ffffff;
+  --card-next-bg: #e0f2fe;
+  /* light cyan */
+  --card-next-fg: #0c4a6e;
+  /* slate-800 */
+
+  --highlight-bg: #ecfeff;
+  /* light cyan */
+  --highlight-border: #a5f3fc;
+  --chip-bg: #e2e8f0;
+  /* slate-200 */
+  --chip-fg: #334155;
+  /* slate-700 */
+
+  --btn-bg: #e2e8f0;
+  --btn-fg: #0f172a;
+  --btn-primary-bg: #0f766e;
+  --btn-primary-fg: #ffffff;
+}
+
+/* Theme override via data-theme (wins over system) */
+html[data-theme="dark"] {
+  --bg: #0b1220;
+  --fg: #e5e7eb;
+  --muted: #94a3b8;
+  --border: #1f2937;
+  --brand: #14b8a6;
+
+  --card-bg: #0f172a;
+  --card-next-bg: #0ea5e9;
+  /* sky-500 */
+  --card-next-fg: #0b1220;
+  /* dark fg for contrast */
+
+  --highlight-bg: #022c22;
+  --highlight-border: #115e59;
+  --chip-bg: #1f2937;
+  --chip-fg: #e2e8f0;
+
+  --btn-bg: #1f2937;
+  --btn-fg: #e2e8f0;
+  --btn-primary-bg: #14b8a6;
+  --btn-primary-fg: #001014;
+}
+
+/* System dark if no override in place */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0b1220;
+    --fg: #e5e7eb;
+    --muted: #94a3b8;
+    --border: #1f2937;
+    --brand: #14b8a6;
+
+    --card-bg: #0f172a;
+    --card-next-bg: #0ea5e9;
+    --card-next-fg: #0b1220;
+
+    --highlight-bg: #022c22;
+    --highlight-border: #115e59;
+    --chip-bg: #1f2937;
+    --chip-fg: #e2e8f0;
+
+    --btn-bg: #1f2937;
+    --btn-fg: #e2e8f0;
+    --btn-primary-bg: #14b8a6;
+    --btn-primary-fg: #001014;
+  }
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* ---------- Layout ---------- */
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  /* ensure centering even if parent flex changes */
+}
+
+/* ---------- Header ---------- */
+.app-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  /* Keep portrait image; control height for balance */
+  height: 96px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.title {
+  font-size: 28px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Right header controls */
+.header-right {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+/* Single row of settings */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.toggle-group-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.toggle-group {
+  display: inline-flex;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toggle-btn.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 999px;
+  transition: all 0.2s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.switch input:checked+.slider {
+  background: var(--brand);
+}
+
+.switch input:checked+.slider::before {
+  transform: translateX(22px);
+}
+
+/* Date + Clock */
+.date-time {
+  text-align: right;
+}
+
+.date-line {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* Flip clock */
+.flip-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.flip-sep {
+  font-size: 22px;
+  margin: 0 4px;
+}
+
+.flip-digit {
+  width: 28px;
+  height: 36px;
+  perspective: 300px;
+}
+
+.flip-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.flip-card .top,
+.flip-card .bottom {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  backface-visibility: hidden;
+}
+
+.flip-card .bottom {
+  transform: rotateX(180deg);
+}
+
+.flip-card.flip .top {
+  animation: flipTop 0.55s ease-in forwards;
+}
+
+.flip-card.flip .bottom {
+  animation: flipBottom 0.55s ease-out forwards;
+}
+
+@keyframes flipTop {
+  0% {
+    transform: rotateX(0deg);
+  }
+
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+@keyframes flipBottom {
+  0% {
+    transform: rotateX(180deg);
+  }
+
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 14px;
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
+
+/* Next-prayer card */
+.next-card {
+  background: var(--card-next-bg);
+  color: var(--card-next-fg);
+  border: 1px solid transparent;
+}
+
+.next-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.next-value {
+  font-size: 18px;
+}
+
+.next-name {
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.countdown {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--card-next-fg);
+  opacity: 0.95;
+}
+
+.countdown-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.progress-wrapper {
+  margin-top: 10px;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--brand);
+  transition: width 1s linear;
+}
+
+/* Small current prayer label (above table) */
+.current-label {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--card-bg);
+}
+
+/* ---------- Times table ---------- */
+.times-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  /* larger for readability */
+  table-layout: fixed;
+}
+
+.times-table th,
+.times-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 10px;
+  /* more vertical space */
+  word-wrap: break-word;
+}
+
+.times-table th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.prayer-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Highlight the current prayer row */
+.highlight {
+  background: var(--highlight-bg);
+  outline: 1px solid var(--highlight-border);
+}
+
+.next-row {
+  font-weight: 700;
+}
+
+/* Chips */
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.5;
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  border: 1px solid var(--border);
+}
+
+.chip-current {
+  border-color: var(--highlight-border);
+}
+
+.chip-next {
+  border-style: dashed;
+}
+
+/* Extras section spacing (Shurooq & Jummah) */
+.extras div {
+  margin-top: 12px;
+  font-size: 18px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  padding: 10px 14px;
+  font-size: 16px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(1.05);
+}
+
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  border-color: transparent;
+}
+
+/* Install button area */
+.install-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.install-btn {
+  min-width: 220px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  margin: 18px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Full-screen Adhan Banner ---------- */
+.adhan-banner {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.banner-content {
+  width: min(92vw, 580px);
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+}
+
+.banner-content h2 {
+  margin: 0 0 8px 0;
+  font-size: 26px;
+}
+
+.banner-time {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.banner-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Responsive: small screens (≤ 480px) ---------- */
+@media (max-width: 480px) {
+  .app-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .header-right {
+    justify-items: center;
+  }
+
+  .controls-row {
+    justify-content: center;
+  }
+
+  .date-time {
+    text-align: center;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .logo {
+    height: 88px;
+    /* a bit smaller on small devices */
+  }
+}
+
+/* ---------- Tight mobile (≤ 375px, iPhone mini etc.) ---------- */
+@media (max-width: 375px) {
+  .app-container {
+    padding: 0 4px;
+    /* tiny gutter so table never overflows */
+  }
+
+  .toggle-btn {
+    padding: 5px 8px;
+    font-size: 13px;
+  }
+
+  .switch {
+    width: 46px;
+    height: 24px;
+  }
+
+  .slider::before {
+    width: 18px;
+    height: 18px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .switch input:checked+.slider::before {
+    transform: translateX(20px);
+  }
+
+  .times-table th,
+  .times-table td {
+    padding: 12px 8px;
+  }
+}
+
+/* ---------- Ultra small (≤ 320px) ---------- */
+@media (max-width: 320px) {
+  .logo {
+    height: 82px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .flip-digit {
+    width: 24px;
+    height: 32px;
+  }
+
+  .flip-sep {
+    font-size: 20px;
+  }
+}
+
+.current-label {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-left: 5px solid var(--brand);
+  background: color-mix(in srgb, var(--brand) 7%, transparent);
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+}
