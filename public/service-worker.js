@@ -1,17 +1,16 @@
 // =============================
 // MWHS PWA SERVICE WORKER
-// Full offline support
+// Full offline support + Push
 // =============================
 
-const CACHE_VERSION = "mwhs-v1";
-const STATIC_CACHE = `static-${CACHE_VERSION}`;
-const ASSETS = [
-  "/",                    // Vite will rewrite this to index.html
+const CACHE_VERSION = "mwhs-v2"; // bump when you change assets/logic
+const CACHE_NAME = `static-${CACHE_VERSION}`;
+
+// Only include files that truly exist under /public
+const PRECACHE_URLS = [
+  "/",                   // SPA shell
   "/index.html",
   "/manifest.json",
-
-  // Timetable JSON
-  "/data/timetable.json",
 
   // Icons
   "/icons/icon-192.png",
@@ -20,70 +19,113 @@ const ASSETS = [
   "/icons/icon-512-maskable.png",
   "/icons/apple-icon-180.png",
 
-  // Audio
+  // (Optional) Poster / favicon, if present
+  "/icons/poster.png",
+  "/favicon.ico",
+
+  // Audio (if you want them available offline)
   "/audio/adhan_1.m4a",
   "/audio/adhan_2.m4a",
 ];
 
-// Pre-cache essential files
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then(cache => cache.addAll(ASSETS))
-  );
+// --------------------------------------------------
+// INSTALL: Pre-cache essential files (fail-safe)
+// --------------------------------------------------
+self.addEventListener("install", (event) => {
   self.skipWaiting();
-});
-
-// Activate new SW — cleanup old caches
-self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== STATIC_CACHE)
-          .map(key => caches.delete(key))
-      )
-    )
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(PRECACHE_URLS);
+      } catch (e) {
+        // Do not block activation if one of the URLs fails
+        console.warn("[SW] Precache skipped some assets:", e);
+      }
+    })()
   );
-  self.clients.claim();
 });
 
-// Fetch handler — offline support
-self.addEventListener("fetch", event => {
-  const request = event.request;
-  const url = new URL(request.url);
+// --------------------------------------------------
+// ACTIVATE: Clean old caches + take control
+// --------------------------------------------------
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      // cleanup old versions with same prefix
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME && k.startsWith("static-"))
+          .map((k) => caches.delete(k))
+      );
+      await self.clients.claim();
+    })()
+  );
+});
 
-  // Only intercept GET requests
-  if (request.method !== "GET") return;
+// --------------------------------------------------
+// FETCH: Offline strategies
+// - HTML: network-first (fallback to cache/index.html)
+// - Others: cache-first (fallback to network)
+// --------------------------------------------------
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
 
-  // Serve local static assets with cache-first strategy
-  if (url.origin === location.origin) {
+  // Only handle GET
+  if (req.method !== "GET") return;
+
+  // Heuristic: HTML requests
+  const isHTML =
+    req.mode === "navigate" ||
+    (req.headers.get("accept") || "").includes("text/html");
+
+  if (isHTML) {
+    // Network-first for navigations to keep app fresh
     event.respondWith(
-      caches.match(request).then(cached => {
-        return (
-          cached ||
-          fetch(request).catch(() => caches.match("/index.html"))
-        );
-      })
+      (async () => {
+        try {
+          const res = await fetch(req);
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, res.clone());
+          return res;
+        } catch {
+          const cache = await caches.open(CACHE_NAME);
+          // Try exact match, otherwise fallback to shell
+          return (await cache.match(req)) || (await cache.match("/index.html"));
+        }
+      })()
     );
     return;
   }
 
-  // For external requests, fallback to network-first
+  // For non-HTML (icons, audio, etc.): cache-first for speed
   event.respondWith(
-    fetch(request)
-      .then(resp => resp)
-      .catch(() => caches.match(request))
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req);
+      if (cached) return cached;
+      try {
+        const res = await fetch(req);
+        if (res && res.ok) cache.put(req, res.clone());
+        return res;
+      } catch {
+        // As a last resort, return whatever we have (may be undefined)
+        return cached || new Response(null, { status: 504 });
+      }
+    })()
   );
 });
 
-// ---- PUSH HANDLERS ----
+// --------------------------------------------------
+// PUSH: Show incoming notifications
+// --------------------------------------------------
 self.addEventListener("push", (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-  } catch (_) {
-    // If payload isn't JSON, fallback
-    data = { title: "MWHS", body: "It's time for prayer." };
+  } catch {
+    data = {};
   }
 
   const title = data.title || "MWHS";
@@ -91,33 +133,30 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    data: data.data || {}, // keep route, prayer key, etc.
+    data: data.data || {}, // e.g., { url: "/" }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Optional: open app when notification clicked
+// --------------------------------------------------
+// NOTIFICATION CLICK: focus existing or open new
+// --------------------------------------------------
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = dataSafe(event, "data.url") || "/";
+  const targetUrl =
+    (event.notification && event.notification.data && event.notification.data.url) || "/";
+
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       for (const client of list) {
+        // Reuse an existing tab that is already on our origin
         if (client.url.includes(self.location.origin) && "focus" in client) {
           return client.focus();
         }
       }
-      return clients.openWindow(url);
+      // Or open a new one
+      return clients.openWindow(targetUrl);
     })
   );
 });
-
-function dataSafe(evt, path) {
-  try {
-    const parts = path.split(".");
-    let obj = evt.notification;
-    for (const p of parts) obj = obj[p];
-    return obj;
-  } catch { return null; }
-}
