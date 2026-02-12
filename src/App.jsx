@@ -246,6 +246,55 @@ function getHijriDate(date = new Date()) {
   return `${HDay} ${monthNames[HMonth - 1]} ${HYear} AH`;
 }
 
+async function getVapidPublicKey() {
+  // You’ll expose this via Vercel env var; we’ll also add a /api/vapid endpoint if you prefer.
+  // For now, paste it directly once generated (step 4).
+  return import.meta.env.VITE_VAPID_PUBLIC_KEY;
+}
+
+async function subscribeUserToPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    alert("Push not supported on this browser.");
+    return null;
+  }
+  const reg = await navigator.serviceWorker.ready;
+  const vapidKey = await getVapidPublicKey();
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(vapidKey),
+  });
+  // Send to backend
+  await fetch("/api/subscribe", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(sub),
+  });
+  return sub;
+}
+
+async function unsubscribeUserFromPush() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    await fetch("/api/unsubscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+    await sub.unsubscribe();
+  }
+}
+
+// helper for VAPID public key conversion
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const b64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
 // ================================
 // MAIN COMPONENT
 // ================================
@@ -308,18 +357,42 @@ export default function App() {
   }, [alertMode]);
 
   // Ask permission when selecting Adhan/Notif
+  // Request permission and keep the browser subscription in sync with Alert mode
   useEffect(() => {
-    async function ensurePerm() {
-      if (alertMode === "off") return;
-      if (!("Notification" in window)) return;
-      if (Notification.permission === "granted") return;
+    let cancelled = false;
 
-      const perm = await Notification.requestPermission();
-      if (perm !== "granted") {
-        setAlertMode("off");
+    async function syncPermissionAndSubscription() {
+      // If user chose Off → ensure unsubscribed and exit
+      if (alertMode === "off") {
+        await unsubscribeUserFromPush().catch(() => { });
+        return;
       }
+
+      // Only proceed for "notif" or "adhan"
+      if (!("Notification" in window)) return;
+
+      // If permission not yet granted, request it
+      if (Notification.permission !== "granted") {
+        const perm = await Notification.requestPermission();
+        if (cancelled) return;
+
+        // User denied → switch back to Off
+        if (perm !== "granted") {
+          setAlertMode("off");
+          // Also try to clean up any previous subscription just in case
+          await unsubscribeUserFromPush().catch(() => { });
+          return;
+        }
+      }
+
+      // Permission is granted → ensure we are subscribed
+      await subscribeUserToPush().catch(() => { });
     }
-    ensurePerm();
+
+    syncPermissionAndSubscription();
+
+    // Cleanup flag to avoid setting state after unmount
+    return () => { cancelled = true; };
   }, [alertMode]);
 
   // PWA install prompt capture

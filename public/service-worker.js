@@ -75,3 +75,49 @@ self.addEventListener("fetch", event => {
       .catch(() => caches.match(request))
   );
 });
+
+// ---- PUSH HANDLERS ----
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (_) {
+    // If payload isn't JSON, fallback
+    data = { title: "MWHS", body: "It's time for prayer." };
+  }
+
+  const title = data.title || "MWHS";
+  const options = {
+    body: data.body || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    data: data.data || {}, // keep route, prayer key, etc.
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Optional: open app when notification clicked
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = dataSafe(event, "data.url") || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      return clients.openWindow(url);
+    })
+  );
+});
+
+function dataSafe(evt, path) {
+  try {
+    const parts = path.split(".");
+    let obj = evt.notification;
+    for (const p of parts) obj = obj[p];
+    return obj;
+  } catch { return null; }
+}
