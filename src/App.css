@@ -40,19 +40,3 @@
 .read-the-docs {
   color: #888;
 }
-
-.toggle-group-wrap .toggle-btn {
-  width: 42px;
-  height: 42px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 20px;
-  border-radius: 10px;
-}
-
-.install-btn.installed[disabled],
-.install-btn[disabled] {
-  opacity: 0.7;
-  cursor: not-allowed;
-  filter: grayscale(15%);
-}

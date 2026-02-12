@@ -851,21 +851,25 @@ export default function App() {
           <div className="install-wrap" style={{ textAlign: "center" }}>
             {installedKnown ? (
               <>
-                <button
-                  className="btn install-btn installed"
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  title="App is installed. Open it from your Home Screen / App Launcher."
+                <p
+                  className="install-note"
+                  title="The app is already installed. Open it from your Home Screen / App Launcher."
+                  style={{
+                    margin: 0,
+                    opacity: 0.9,
+                    fontSize: "0.95rem",
+                    lineHeight: 1.4
+                  }}
                 >
-                  App is installed. Open from Home Screen
-                </button>
+                  App is installed. Open from Home Screen.
+                </p>
+
                 <div style={{ marginTop: 8 }}>
                   <button
                     type="button"
                     className="btn btn-ghost"
                     onClick={refreshInstallStatus}
-                    title="If you uninstalled the app, click to refresh the install status"
+                    title="If you uninstalled the app, tap to refresh the install status"
                   >
                     Refresh status
                   </button>
