@@ -645,25 +645,29 @@ body {
   color: var(--fg);
 }
 
-.toggle-group-wrap .toggle-btn {
-  width: 42px;
-  height: 42px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 20px;
-  border-radius: 10px;
-}
+/* src/index.css */
 
-.install-btn.installed[disabled],
-.install-btn[disabled] {
-  opacity: 0.7;
-  cursor: not-allowed;
-  filter: grayscale(15%);
+.install-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+  text-align: center;
+  flex-direction: column;            /* ensure vertical stacking */
+  align-items: center;
 }
 
 .install-note {
   color: var(--text-muted, #6b7280);
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
+
+.install-actions {
+  margin-top: 8px;                   /* puts the button UNDER the text */
+}
+
 .btn-ghost {
   background: transparent;
   color: inherit;

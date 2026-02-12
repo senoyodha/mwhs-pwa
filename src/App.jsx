@@ -847,41 +847,37 @@ export default function App() {
         </section>
 
         {/* INSTALL / INSTALLED STATE */}
-        {!standalone && (
-          <div className="install-wrap" style={{ textAlign: "center" }}>
-            {installedKnown ? (
-              <>
-                <p
-                  className="install-note"
-                  title="The app is already installed. Open it from your Home Screen / App Launcher."
-                  style={{
-                    margin: 0,
-                    opacity: 0.9,
-                    fontSize: "0.95rem",
-                    lineHeight: 1.4
-                  }}
-                >
-                  App is installed. Open from Home Screen.
-                </p>
+{!standalone && (
+  <div className="install-wrap" style={{ textAlign: "center" }}>
+    {installedKnown ? (
+      <>
+        <p
+          className="install-note"
+          title="The app is already installed. Open it from your Home Screen / App Launcher."
+          style={{ margin: 0, opacity: 0.9, fontSize: "0.95rem", lineHeight: 1.4 }}
+        >
+          App is installed. Open from Home Screen.
+        </p>
 
-                <div style={{ marginTop: 8 }}>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={refreshInstallStatus}
-                    title="If you uninstalled the app, tap to refresh the install status"
-                  >
-                    Refresh status
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button className="btn install-btn" onClick={handleInstallClick}>
-                Install MWHS App
-              </button>
-            )}
-          </div>
-        )}
+        {/* Force the button onto its own line below the text */}
+        <div className="install-actions">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={refreshInstallStatus}
+            title="If you uninstalled the app, tap to refresh the install status"
+          >
+            Refresh status
+          </button>
+        </div>
+      </>
+    ) : (
+      <button className="btn install-btn" onClick={handleInstallClick}>
+        Install MWHS App
+      </button>
+    )}
+  </div>
+)}
 
         {/* FULL-SCREEN BANNER */}
         {showBanner && bannerInfo && (
