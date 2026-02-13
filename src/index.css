@@ -251,39 +251,30 @@ body {
 }
 
 /* Flip clock */
-/* -------------------------------------------------- */
-/*  iOS‑Style Flip Clock (Polished Mechanical Effect) */
-/* -------------------------------------------------- */
-
 .flip-clock {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .flip-sep {
-  font-size: 26px;
-  margin: 0 6px;
-  font-weight: 600;
-  opacity: 0.8;
+  font-size: 22px;
+  margin: 0 4px;
 }
 
 .flip-digit {
-  width: 34px;
-  height: 46px;
-  perspective: 900px;
-  /* deeper 3D */
+  width: 28px;
+  height: 36px;
+  perspective: 300px;
 }
 
 .flip-card {
   position: relative;
   width: 100%;
   height: 100%;
-  transform-style: preserve-3d;
 }
 
-/* Shared styles for both halves */
 .flip-card .top,
 .flip-card .bottom {
   position: absolute;
@@ -291,72 +282,44 @@ body {
   display: grid;
   place-items: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   background: var(--card-bg);
   color: var(--fg);
-  border-radius: 8px;
   border: 1px solid var(--border);
+  border-radius: 6px;
   backface-visibility: hidden;
-  overflow: hidden;
-}
-
-/* Divider line for realism */
-.flip-card .top {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-  z-index: 3;
 }
 
 .flip-card .bottom {
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
   transform: rotateX(180deg);
-  z-index: 1;
 }
 
-/* 3D flip animations */
 .flip-card.flip .top {
-  animation: flipTop 0.55s cubic-bezier(0.45, 0, 0.15, 1) forwards;
-  transform-origin: center bottom;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  animation: flipTop 0.55s ease-in forwards;
 }
 
 .flip-card.flip .bottom {
-  animation: flipBottom 0.55s cubic-bezier(0.45, 0, 0.15, 1) forwards;
-  transform-origin: center top;
-  box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.25);
+  animation: flipBottom 0.55s ease-out forwards;
 }
 
-/* Top half flips down */
 @keyframes flipTop {
   0% {
     transform: rotateX(0deg);
   }
 
-  45% {
-    transform: rotateX(-90deg);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-  }
-
   100% {
     transform: rotateX(-180deg);
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
-/* Bottom half flips up */
 @keyframes flipBottom {
   0% {
     transform: rotateX(180deg);
   }
 
-  55% {
-    transform: rotateX(90deg);
-    box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.35);
-  }
-
   100% {
     transform: rotateX(0deg);
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
@@ -689,8 +652,7 @@ body {
   justify-content: center;
   margin-top: 14px;
   text-align: center;
-  flex-direction: column;
-  /* ensure vertical stacking */
+  flex-direction: column;            /* ensure vertical stacking */
   align-items: center;
 }
 
@@ -703,14 +665,13 @@ body {
 }
 
 .install-actions {
-  margin-top: 8px;
-  /* puts the button UNDER the text */
+  margin-top: 8px;                   /* puts the button UNDER the text */
 }
 
 .btn-ghost {
   background: transparent;
   color: inherit;
-  border: 1px solid rgba(0, 0, 0, .06);
+  border: 1px solid rgba(0,0,0,.06);
   padding: 6px 12px;
   border-radius: 8px;
 }
