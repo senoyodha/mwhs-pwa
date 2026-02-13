@@ -749,11 +749,11 @@
       "isha": "19:15",
       "shurooq": "07:13",
       "jumma": "12:45",
-      "iqamah_fajr": "06:15",
+      "iqamah_fajr": "05:36",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:10",
       "iqamah_maghrib": "17:27",
-      "iqamah_isha": "19:30"
+      "iqamah_isha": "19:45"
     },
     {
       "date": "2026-02-20",
@@ -764,11 +764,11 @@
       "isha": "19:16",
       "shurooq": "07:11",
       "jumma": "12:45",
-      "iqamah_fajr": "06:15",
+      "iqamah_fajr": "05:34",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:10",
       "iqamah_maghrib": "17:29",
-      "iqamah_isha": "19:30"
+      "iqamah_isha": "19:45"
     },
     {
       "date": "2026-02-21",
@@ -779,7 +779,7 @@
       "isha": "19:18",
       "shurooq": "07:09",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:32",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:31",
@@ -794,7 +794,7 @@
       "isha": "19:19",
       "shurooq": "07:07",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:31",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:33",
@@ -809,7 +809,7 @@
       "isha": "19:20",
       "shurooq": "07:05",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:30",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:35",
@@ -824,7 +824,7 @@
       "isha": "19:21",
       "shurooq": "07:02",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:29",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:37",
@@ -839,7 +839,7 @@
       "isha": "19:22",
       "shurooq": "07:00",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:28",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:39",
@@ -854,7 +854,7 @@
       "isha": "19:23",
       "shurooq": "06:58",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:27",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:41",
@@ -869,7 +869,7 @@
       "isha": "19:24",
       "shurooq": "06:56",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:26",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:43",
@@ -884,7 +884,7 @@
       "isha": "19:25",
       "shurooq": "06:53",
       "jumma": "12:45",
-      "iqamah_fajr": "06:00",
+      "iqamah_fajr": "05:24",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:44",
@@ -899,11 +899,11 @@
       "isha": "19:26",
       "shurooq": "06:51",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:22",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:46",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-02",
@@ -914,11 +914,11 @@
       "isha": "19:28",
       "shurooq": "06:49",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:19",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:48",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-03",
@@ -929,11 +929,11 @@
       "isha": "19:30",
       "shurooq": "06:47",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:17",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:50",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-04",
@@ -944,11 +944,11 @@
       "isha": "19:31",
       "shurooq": "06:44",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:16",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:52",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-05",
@@ -959,11 +959,11 @@
       "isha": "19:32",
       "shurooq": "06:42",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:15",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:54",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-06",
@@ -974,11 +974,11 @@
       "isha": "19:33",
       "shurooq": "06:40",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:14",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:56",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-07",
@@ -989,11 +989,11 @@
       "isha": "19:34",
       "shurooq": "06:37",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:13",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "17:58",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-08",
@@ -1004,11 +1004,11 @@
       "isha": "19:35",
       "shurooq": "06:35",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:12",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "18:00",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-09",
@@ -1019,11 +1019,11 @@
       "isha": "19:36",
       "shurooq": "06:32",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:10",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "18:01",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-10",
@@ -1034,11 +1034,11 @@
       "isha": "19:37",
       "shurooq": "06:30",
       "jumma": "12:45",
-      "iqamah_fajr": "05:30",
+      "iqamah_fajr": "05:07",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:30",
       "iqamah_maghrib": "18:03",
-      "iqamah_isha": "19:45"
+      "iqamah_isha": "20:00"
     },
     {
       "date": "2026-03-11",
@@ -1049,11 +1049,11 @@
       "isha": "19:38",
       "shurooq": "06:28",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "05:05",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:05",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-12",
@@ -1064,11 +1064,11 @@
       "isha": "19:40",
       "shurooq": "06:25",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "05:02",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:07",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-13",
@@ -1079,11 +1079,11 @@
       "isha": "19:42",
       "shurooq": "06:23",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "05:00",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:09",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-14",
@@ -1094,11 +1094,11 @@
       "isha": "19:43",
       "shurooq": "06:21",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:59",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:11",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-15",
@@ -1109,11 +1109,11 @@
       "isha": "19:44",
       "shurooq": "06:18",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:58",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:13",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-16",
@@ -1124,11 +1124,11 @@
       "isha": "19:45",
       "shurooq": "06:16",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:57",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:14",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-17",
@@ -1139,11 +1139,11 @@
       "isha": "19:46",
       "shurooq": "06:13",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:56",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:16",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-18",
@@ -1154,11 +1154,11 @@
       "isha": "19:47",
       "shurooq": "06:11",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:54",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:18",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-19",
@@ -1169,11 +1169,11 @@
       "isha": "19:48",
       "shurooq": "06:09",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:51",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:20",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-20",
@@ -1184,11 +1184,11 @@
       "isha": "19:49",
       "shurooq": "06:06",
       "jumma": "12:45",
-      "iqamah_fajr": "05:15",
+      "iqamah_fajr": "04:49",
       "iqamah_dhuhr": "13:10",
       "iqamah_asr": "15:45",
       "iqamah_maghrib": "18:22",
-      "iqamah_isha": "20:00"
+      "iqamah_isha": "20:15"
     },
     {
       "date": "2026-03-21",
