@@ -305,6 +305,7 @@ async function subscribeUserToPush() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(sub),
     });
+
     console.info("[PUSH] Subscribed & sent to backend.");
     return sub;
   } catch (err) {
@@ -671,6 +672,51 @@ export default function App() {
     }
   }
 
+  function FlipDigit({ value, label }) {
+    const [prev, setPrev] = useState(value);
+    const [flip, setFlip] = useState(false);
+
+    useEffect(() => {
+      if (value !== prev) {
+        setFlip(true);
+        const id = setTimeout(() => {
+          setFlip(false);
+          setPrev(value);
+        }, 550);
+        return () => clearTimeout(id);
+      }
+    }, [value]);
+
+    return (
+      <div className="flip-digit" aria-label={label}>
+        <div className={`flip-card ${flip ? "flip" : ""}`}>
+          <div className="top">{prev}</div>
+          <div className="bottom">{value}</div>
+        </div>
+      </div>
+    );
+  }
+
+  function FlipClock({ time }) {
+    const [hh, mm, ss] = time.split(":");
+    const [h1, h2] = hh.split("");
+    const [m1, m2] = mm.split("");
+    const [s1, s2] = ss.split("");
+
+    return (
+      <div className="flip-clock">
+        <FlipDigit value={h1} label="Hour tens" />
+        <FlipDigit value={h2} label="Hour ones" />
+        <span className="flip-sep">:</span>
+        <FlipDigit value={m1} label="Minute tens" />
+        <FlipDigit value={m2} label="Minute ones" />
+        <span className="flip-sep">:</span>
+        <FlipDigit value={s1} label="Second tens" />
+        <FlipDigit value={s2} label="Second ones" />
+      </div>
+    );
+  }
+
   // Current label (supports Fajr special cases and overnight after midnight)
   let currentLabel = null;
   if (todayEntry) {
@@ -735,7 +781,7 @@ export default function App() {
             <div className="date-line">
               {formatGregorian(now)} / {formatHijri(now)}
             </div>
-            <div className="clock-area">{clockStr}</div>
+            <FlipClock time={clockStr} />
           </div>
 
           {/* SETTINGS */}
