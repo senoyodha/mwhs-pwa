@@ -710,14 +710,33 @@ export default function App() {
         currentLabel = null;
       }
     } else if (currentPrayer) {
-      // Non-Fajr current prayers: Iqamah → Ends
-      const iqStr = todayEntry["iqamah_" + currentPrayer];
-      const iqDt = iqStr ? parseHMToDate(iqStr, now) : null;
+      let target = null;
+      let caption = currentPrayer.toUpperCase(); // base caption: "DHUHR", "ASR", etc.
 
-      if (iqDt && now < iqDt) {
-        currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Iqamah in ${getCountdown(iqDt, now)}`;
+      if (currentPrayer === "dhuhr") {
+        const weekday = now.getDay(); // 5 = Friday
+
+        if (weekday === 5 && todayEntry.jumma) {
+          // --- FRIDAY SPECIAL RULE ---
+          target = parseHMToDate(todayEntry.jumma, now);
+          caption = "DHUHR — Jumma";   // <-- your requested caption
+        } else {
+          const iqStr = todayEntry["iqamah_dhuhr"];
+          target = iqStr ? parseHMToDate(iqStr, now) : null;
+          caption = "DHUHR — Iqamah";
+        }
+
+      } else {
+        // Normal prayers
+        const iqStr = todayEntry["iqamah_" + currentPrayer];
+        target = iqStr ? parseHMToDate(iqStr, now) : null;
+        caption = `${currentPrayer.toUpperCase()} — Iqamah`;
+      }
+
+      if (target && now < target) {
+        currentLabel = `${caption} in ${getCountdown(target, now)}`;
       } else if (nextPrayerTime) {
-        currentLabel = `CURRENT: ${currentPrayer.toUpperCase()} — Ends in ${getCountdown(nextPrayerTime, now)}`;
+        currentLabel = `${currentPrayer.toUpperCase()} — Ends in ${getCountdown(nextPrayerTime, now)}`;
       }
     } else {
       // After midnight before Fajr: show overnight label to Fajr
